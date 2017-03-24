@@ -5,7 +5,6 @@ const NamedRegExp = require('named-regexp-groups');
 
 export default class BaseCommand {
 
-
     _id;
     _permission;
     _channel;
@@ -77,24 +76,22 @@ export default class BaseCommand {
     }
 
     _matcher(message) {
-        this.log.debug('Running matcher for %s %s', this.id, this._pattern);
+
         if (!this._enabled) {
-            this.log.debug('%s command disabled', this.id);
+
             return false;
         }
-        this.log.debug('%s command enabled', this.id);
 
 
         let text = message.text;
 
-        this.log.debug('Trying matcher against message (%s)', text);
-
 
         let match = this._pattern.exec(text);
-
-
-        this.log.debug('Message (%s) matches = %j', text, match ? match.groups : false);
+        if (match) {
+            this.log.debug('Matched message %s with %j', text, match.groups);
+        }
         return match;
+
     }
 
 
