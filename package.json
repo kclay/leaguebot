@@ -13,8 +13,9 @@
     "hubot-script"
   ],
   "scripts": {
+    "rimraf": "node ./node_modules/rimraf/bin dist",
     "build": "babel src -d dist",
-    "prepublish": "babel src -d dist",
+    "prepublish": "npm run rimraf && babel src -d dist",
     "test_": "istanbul cover node_modules/mocha/bin/_mocha -- -R spec --compilers js:babel-core/register",
     "test": "node ./node_modules/mocha/bin/_mocha ",
     "coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
@@ -60,6 +61,7 @@
     "named-regexp-groups": "^1.0.2",
     "objection": "^0.7.10",
     "pg": "^6.1.5",
+    "rimraf": "^2.6.1",
     "sequelize": "^3.30.3"
   },
   "engines": {

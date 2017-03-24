@@ -42,7 +42,11 @@ export  default class Remove extends BaseCommand {
             this.log.debug('Updating %s permission from %s to %s', user.name, current, updated);
             await user.update({
                 permissions: updated.value
-            })
+            });
+
+
+            this.permissions.update(u.id, updated.value);
+            this.log.debug('Updating user permission in cache %s = %d', u.name, updated.value);
 
         }
 

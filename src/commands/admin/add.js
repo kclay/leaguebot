@@ -18,6 +18,8 @@ export  default class Add extends BaseCommand {
     }
 
     async _handle(resp) {
+
+        this.log.debug('USER %d', PERMISSIONS.USER.value);
         let {name, asSuper} = resp.match.groups;
         let type = asSuper ? 'SuperAdmin' : 'Admin';
 
@@ -48,8 +50,10 @@ export  default class Add extends BaseCommand {
             name: u.name,
             permissions: permissions
         });
+        this.permissions.update(u.id, permissions);
 
-        u.permissions = permissions;
+
+        this.log.debug('Updating user permission in cache %s = %d', u.name, permissions);
 
 
         let msg = `${name} has been added to the ${type} list!`;

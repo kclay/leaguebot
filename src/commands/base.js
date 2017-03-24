@@ -1,12 +1,13 @@
 const path = require('path');
 const stackTrace = require('stack-trace');
+import {PERMISSIONS, PERMISSIONS_ALL, createLogger} from '../common';
 const NamedRegExp = require('named-regexp-groups');
 
 
 export default class BaseCommand {
 
     _id;
-    _permission;
+    _permission = PERMISSIONS_ALL;
     _channel;
     _enabled = true;
     log;
@@ -16,44 +17,30 @@ export default class BaseCommand {
     constructor(robot, id) {
         this._id = id;
         this.robot = robot;
-        this.log = this._createLogger(robot.logger);
+        this.log = createLogger(robot.logger, this.id);
         this.init();
 
         this.log.debug('Added %s Command', this.id);
         this._pattern = this._buildRegex();
     }
 
-    _createLogger(logger) {
-
-        let banner = this.id;
-
-        function bind(type) {
-            return function () {
-                let parts = Array.prototype.slice.call(arguments);
-                parts[0] = `[${banner}] ${parts[0]}`;
-
-                logger[type].apply(logger, parts);
-
-            }
-        }
-
-        return {
-            debug: bind('debug'),
-            info: bind('info'),
-            warning: bind('warning'),
-
-            error: bind('error')
-        }
-    }
 
     get id() {
         return this._id;
     }
 
     init() {
+
+        if (this._permission.constructor === String) {
+            this._permission = PERMISSIONS.get(this._permission);
+        }
         this.log.debug('Called init() for %s', this.id);
     }
 
+
+    get permissions() {
+        return this.robot.brain.get('permissions');
+    }
 
     mount() {
 
