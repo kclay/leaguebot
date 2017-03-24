@@ -1,0 +1,68 @@
+{
+  "name": "001-leaguebot",
+  "version": "0.0.0",
+  "description": "CR League Bot",
+  "main": "dist/index.js",
+  "license": "MIT",
+  "author": {
+    "name": "kclay",
+    "email": "keyston@conceptual-ideas.com"
+  },
+  "repository": "https://github.com//001-leaguebot.git",
+  "keywords": [
+    "hubot-script"
+  ],
+  "scripts": {
+    "build": "babel src -d dist",
+    "prepublish": "babel src -d dist",
+    "test_": "istanbul cover node_modules/mocha/bin/_mocha -- -R spec --compilers js:babel-core/register",
+    "test": "node ./node_modules/mocha/bin/_mocha ",
+    "coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
+  },
+  "devDependencies": {
+    "babel-polyfill": "^6.23.0",
+    "babel-preset-latest": "^6.24.0",
+    "chai": "^3.4.1",
+    "coffee-script": "^1.12.4",
+    "coveralls": "^2.11.6",
+    "hubot": "^2.18.0",
+    "hubot-test-helper": "^1.5.1",
+    "istanbul": "^1.0.0-alpha.2",
+    "mocha": "^2.3.4",
+    "should": "^11.2.1"
+  },
+  "dependencies": {
+    "babel-cli": "^6.5.1",
+    "babel-core": "^6.2.1",
+    "babel-plugin-add-module-exports": "^0.2.1",
+    "babel-plugin-transform-class-properties": "^6.8.0",
+    "babel-preset-es2015": "^6.1.18",
+    "babel-preset-stage-0": "^6.5.0",
+    "bluebird": "^3.5.0",
+    "dotenv": "^4.0.0",
+    "enum": "^2.4.0",
+    "glob": "^7.1.1",
+    "hubot": "^2.19.0",
+    "hubot-diagnostics": "0.0.1",
+    "hubot-google-images": "^0.2.6",
+    "hubot-google-translate": "^0.2.0",
+    "hubot-help": "^0.2.0",
+    "hubot-heroku-keepalive": "^1.0.2",
+    "hubot-maps": "0.0.2",
+    "hubot-pugme": "^0.1.0",
+    "hubot-redis-brain": "0.0.3",
+    "hubot-rules": "^0.1.1",
+    "hubot-scripts": "^2.17.2",
+    "hubot-shipit": "^0.2.0",
+    "hubot-slack": "^4.3.3",
+    "knex": "^0.12.9",
+    "named-regexp": "^0.1.1",
+    "named-regexp-groups": "^1.0.2",
+    "objection": "^0.7.10",
+    "pg": "^6.1.5",
+    "sequelize": "^3.30.3"
+  },
+  "engines": {
+    "node": "0.10.x"
+  }
+}

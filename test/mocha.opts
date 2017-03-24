@@ -1,0 +1,7 @@
+--require should
+--require coffee-script/register
+--require babel-polyfill
+-R spec
+-b
+--ui bdd
+--compilers js:babel-core/register
