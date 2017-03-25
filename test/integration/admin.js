@@ -47,7 +47,7 @@ describe('admin', () => {
             ['hubot', `${USER_NAME} has been added to the SuperAdmin list!`]
         );
 
-    })
+    });
 
     it('should set permission correctly', async() => {
         await room.user.say(OWNER, `!admin add ${USER_NAME}`);
@@ -66,6 +66,39 @@ describe('admin', () => {
         permission.has('ADMIN').should.be.true();
         permission.has('SUPER_ADMIN').should.be.true();
     })
+
+
+    it('should remove admin permission', async() => {
+
+        await room.user.say(OWNER, `!admin add ${USER_NAME}`);
+        await room.user.say(OWNER, `!admin remove ${USER_NAME}`);
+
+        let permission = permissions.get(ID);
+        console.log(permission.key);
+        permission.is('USER').should.be.true();
+
+        let user = await User.findOne({
+            where: {_id: ID}
+        })
+        permission = PERMISSIONS.get(user.permissions);
+        permission.is('USER').should.be.true();
+    })
+
+    it('should remove super admin permission', async() => {
+
+        await room.user.say(OWNER, `!admin add ${USER_NAME} super`);
+        await room.user.say(OWNER, `!admin remove ${USER_NAME}`);
+
+        let permission = permissions.get(ID);
+        permission.is('USER').should.be.true();
+
+        let user = await User.findOne({
+            where: {_id: ID}
+        });
+        permission = PERMISSIONS.get(user.permissions);
+        permission.is('USER').should.be.true();
+    })
+
 
 });
 

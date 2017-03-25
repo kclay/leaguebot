@@ -12,7 +12,7 @@ export  default class Remove extends BaseCommand {
     }
 
     init() {
-        this._pattern = '\\s+(?<name>[@a-zA-Z]+)';
+        this._pattern = '\\s+@?(?<name>\\w+)';
         super.init();
 
     }
@@ -52,7 +52,7 @@ export  default class Remove extends BaseCommand {
 
 
         let msg = `${name} has been added removed as an admin!`;
-        resp.send(msg);
+        return resp.send(msg);
 
     }
 
