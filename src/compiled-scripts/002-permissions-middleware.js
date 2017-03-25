@@ -17,6 +17,7 @@ module.exports = (robot) => {
         let {user, room}= ctx.response.envelope;
 
         if (permission.has('USER')) {
+            log.debug('%s has permission = USER', id);
             return next(done);
         }
 

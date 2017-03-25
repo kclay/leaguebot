@@ -14,9 +14,34 @@ class Commands {
     add(name, trigger, command) {
         let cmd = this.registry[name] ? this.registry[name] : this.registry[name] = new Command(name);
 
-        console.log('Addming command %s with trigger %s', name, trigger);
+        console.log('Adding command %s with trigger %s', name, trigger);
         cmd.add(trigger, command);
     }
+
+
+    list(group) {
+        const flatten = arr => arr.reduce(
+            (acc, val) => acc.concat(
+                Array.isArray(val) ? flatten(val) : val
+            ),
+            []
+        );
+        if (group && !(group in this.registry)) {
+            return [];
+        }
+
+        let commands = group
+            ? [this.registry[group]]
+            : Object.values(this.registry);
+
+
+        return flatten(commands.map(c => {
+
+            return Object.values(c.mounted)
+        }));
+
+    }
+
 
     retrieve(name) {
         return this.registry[name];
@@ -40,6 +65,7 @@ class Command {
 
     }
 
+
     get bang() {
         return `!${this.name}`;
     }
@@ -52,7 +78,7 @@ class Command {
     mount(robot) {
         robot.logger.debug(`Mounting ${this.bang}`);
         Object.keys(this.triggers).forEach(trigger => {
-            let clazz=this.triggers[trigger];
+            let clazz = this.triggers[trigger];
 
             let instance = new clazz(robot);
             instance.mount();
@@ -62,7 +88,7 @@ class Command {
     }
 
     find(name) {
-        return this.triggers[name];
+        return this.mounted[name];
     }
 
     add(trigger, command) {

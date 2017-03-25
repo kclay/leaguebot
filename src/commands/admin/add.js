@@ -6,6 +6,10 @@ import {PERMISSIONS, addPermissions}  from '../../common';
 export  default class Add extends BaseCommand {
 
     static id = 'admin.add';
+    help = {
+        cmd: '!admin add <username> <?super>',
+        desc: 'Applies ADMIN or SUPER_ADMIN user role'
+    };
 
     constructor(robot) {
         super(robot, Add.id);

@@ -82,6 +82,7 @@ export default class BaseCommand {
 
 
         let text = message.text;
+        this.log.debug('Text %s', text);
 
 
         let match = this._pattern.exec(text);
@@ -95,7 +96,9 @@ export default class BaseCommand {
 
     _buildRegex() {
         let [command, trigger] = this.id.split('.');
-        let value = `!${command} ${trigger}${this._pattern}`;
+        trigger = trigger == 'root' ? '' : ` ${trigger}`;
+
+        let value = `!${command}${trigger}${this._pattern}`;
         this.log.debug('Creating matcher for %s = %s', this.id, value);
         return new NamedRegExp(value);
     }
