@@ -1,9 +1,9 @@
 const path = require('path');
 const stackTrace = require('stack-trace');
-import {Listener, Middleware} from 'hubot';
-import {inspect} from 'util';
-
-import {PERMISSIONS, PERMISSIONS_ALL, createLogger} from '../common';
+import {Listener, Middleware} from "hubot";
+import {inspect} from "util";
+import {PERMISSIONS, PERMISSIONS_ALL, createLogger} from "../common";
+import {TextBuilder, AutoFormatter} from "../formatters";
 const NamedRegExp = require('named-regexp-groups');
 
 
@@ -22,18 +22,33 @@ export default class BaseCommand {
     _enabled = true;
     log;
     _pattern = '';
+    _fmt;
 
 
     constructor(robot, id) {
         this._id = id;
         this.robot = robot;
         this.log = createLogger(robot.logger, this.id);
-        this.init();
 
+        this.init();
+        if (!this._fmt) {
+            this._fmt = new AutoFormatter()
+
+        }
         this.log.debug('Added %s Command', this.id);
         this._pattern = this._buildRegex();
+
+
     }
 
+
+    get fmt() {
+        return this._fmt;
+    }
+
+    get text() {
+        return new TextBuilder(this._fmt);
+    }
 
     get id() {
         return this._id;
@@ -76,14 +91,11 @@ export default class BaseCommand {
     _matcher(message) {
 
         if (!this._enabled) {
-
             return false;
         }
 
 
         let text = message.text;
-        this.log.debug('Text %s', text);
-
 
         let match = this._pattern.exec(text);
         if (match) {

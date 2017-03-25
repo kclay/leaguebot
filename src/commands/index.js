@@ -12,9 +12,10 @@ class Commands {
     }
 
     add(name, trigger, command) {
-        let cmd = this.registry[name] ? this.registry[name] : this.registry[name] = new Command(name);
+        let cmd = this.registry[name]
+            ? this.registry[name]
+            : this.registry[name] = new Command(name);
 
-        console.log('Adding command %s with trigger %s', name, trigger);
         cmd.add(trigger, command);
     }
 

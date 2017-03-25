@@ -6,4 +6,5 @@ dist
 coverage
 .idea
 *.iml
+.env
 

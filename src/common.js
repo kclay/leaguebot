@@ -120,3 +120,9 @@ export function createLogger(logger, banner) {
         error: bind('error')
     }
 }
+
+export const BotConfig = {
+    league: {
+        signup_enabled: true
+    }
+};

@@ -1,24 +1,31 @@
 'use strict';
 
-import {sequelize} from '../datastore';
-
-
-import Commands from '../commands';
+import {sequelize, Config} from "../datastore";
+import {BotConfig} from "../common";
+import Commands from "../commands";
 
 module.exports = (robot) => {
 
-    console.log('001-index');
+
     const setup = () => {
         Object.keys(Commands.registry).forEach(key => {
             let command = Commands.registry[key];
-            robot.logger.debug('Found command %s', key);
             command.mount(robot);
-        })
-    }
+        });
+
+    };
     if (process.env.NODE_ENV !== 'test') {
-        sequelize.sync().then(setup)
+        sequelize.sync().then(async() => {
+            let config = await Config.findOne();
+            if (!config) {
+                config = await Config.create(BotConfig)
+
+            }
+            robot.brain.set('config', config);
+            return setup();
+        })
     } else {
-        setup();
+        return setup();
     }
 
 

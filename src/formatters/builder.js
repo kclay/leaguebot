@@ -1,0 +1,57 @@
+export default class TextBuilder {
+
+    _blocks = [];
+
+
+    fmt;
+
+    constructor(fmt) {
+        this.fmt = fmt;
+    }
+
+    _append(method, text) {
+        this._blocks.push(this.fmt[method](text));
+        return this;
+    }
+
+    bold(text) {
+        return this._append('bold', text);
+    }
+
+    italic(text) {
+        return this._append('italic', text);
+    }
+
+    strike(text) {
+        return this._append('strike', text);
+    }
+
+    add(text) {
+        this._blocks.push(text);
+        return this;
+    }
+
+    toString() {
+        return this._blocks.join(' ');
+    }
+
+    valueOf() {
+        return this.toString();
+    }
+
+    get error() {
+        return this.bold('Error :');
+    }
+
+    wrap(cb, method) {
+        let v = cb(new this.constructor(this.fmt))._;
+
+
+        return this[method](v);
+
+    }
+
+    get _() {
+        return this.toString();
+    }
+}

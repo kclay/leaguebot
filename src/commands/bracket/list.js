@@ -27,8 +27,13 @@ export  default class List extends BaseCommand {
             return resp.send('No brackets created!');
         }
 
-        brackets = brackets.map((b) => `*${b.name}*`).join(', ');
-        return resp.send(`The following brackets are available bracket has been created\n${brackets}`);
+
+        let text = this.text
+            .add('The following brackets are available bracket has been created\n');
+
+        text.add(brackets.map((b) => text.fmt.bold(b.name)).join(', '));
+
+        return resp.send(`${text}`);
 
 
     }
