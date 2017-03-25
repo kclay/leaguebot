@@ -1,9 +1,19 @@
 const path = require('path');
 const stackTrace = require('stack-trace');
+import {Listener, Middleware} from 'hubot';
+import {inspect} from 'util';
+
 import {PERMISSIONS, PERMISSIONS_ALL, createLogger} from '../common';
 const NamedRegExp = require('named-regexp-groups');
 
 
+const TICKER = (cb) => {
+    if (typeof setImmediate === "function") {
+        return setImmediate(cb);
+    } else {
+        process.nextTick(cb)
+    }
+};
 export default class BaseCommand {
 
     _id;
@@ -51,7 +61,8 @@ export default class BaseCommand {
         };
 
         this.log.debug('Mounting %s Command with options = %j', this.id, options);
-        this.robot.listen(this._matcher.bind(this), options, this._handle.bind(this))
+        this.robot.listeners.push(new AsyncListener(this.robot, this._matcher.bind(this),
+            options, this._handle.bind(this)));
     }
 
     unmount() {
@@ -90,3 +101,73 @@ export default class BaseCommand {
     }
 }
 
+
+class AsyncListener extends Listener {
+
+
+    call(message, middleware, cb) {
+        let match;
+
+        // middleware argument is optional
+        if (cb == null && typeof middleware === 'function') {
+            cb = middleware;
+            middleware = undefined;
+        }
+
+        // ensure we have a Middleware object
+        if (middleware == null) {
+            middleware = new Middleware(this.robot);
+        }
+
+        if (match = this.matcher(message)) {
+            if (this.regex) {
+                this.robot.logger.debug(
+                    `Message '${message}' matched regex /${inspect(this.regex)}/;
+          listener.options = ${inspect(this.options)}`
+                );
+            }
+            // special middleware-like function that always executes the Listener's
+            // callback and calls done (never calls 'next')
+            let executeListener = (context, done) => {
+                this.robot.logger.debug(
+                    'Executing listener callback for Message \'${message}\'');
+                let p = Promise.resolve(true);
+                let rtn;
+                try {
+
+                    p = Promise.resolve(this.callback(context.response));
+                } catch (err) {
+                    this.robot.emit('error', err, context.response);
+                }
+                p.then(() => {
+                    return done();
+                })
+
+            };
+
+            // When everything is finished (down the middleware stack and back up),
+            // pass control back to the robot
+            let allDone = () => {
+                // Yes, we tried to execute the listener callback (middleware may
+                // have intercepted before actually executing though)
+                if (cb) {
+                    TICKER(() => cb(true));
+                }
+            };
+
+            let response = new this.robot.Response(this.robot, message, match);
+            middleware.execute({
+                listener: this,
+                response,
+            }, executeListener, allDone);
+            return true;
+        } else {
+            if (cb) {
+                // No, we didn't try to execute the listener callback
+                process.nextTick(() => cb(false));
+            }
+            return false;
+        }
+    }
+
+}

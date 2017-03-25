@@ -1,6 +1,7 @@
-import {sequelize} from '../src/datastore';
+require('babel-polyfill');
+const datastore = require('../src/datastore');
 beforeEach(done => {
-    sequelize.sync({force: true}).then(function () {
+    datastore.sequelize.sync({force: true}).then(function () {
         done();
     });
 });

@@ -12,14 +12,14 @@ export  default class Add extends BaseCommand {
     }
 
     init() {
-        this._pattern = '\\s+(?<name>[@a-zA-Z]+)\\s?(?<asSuper>super)?';
+        this._pattern = '\\s+@?(?<name>\\w+)\\s?(?<asSuper>super)?';
         super.init();
 
     }
 
     async _handle(resp) {
 
-        this.log.debug('USER %d', PERMISSIONS.USER.value);
+
         let {name, asSuper} = resp.match.groups;
         let type = asSuper ? 'SuperAdmin' : 'Admin';
 
@@ -33,6 +33,8 @@ export  default class Add extends BaseCommand {
         let [user, created] = await User.findOrCreate({
             where: {_id: u.id}
         });
+
+        this.log.debug('Found user = %j , created = %s', user, created);
 
         let current = PERMISSIONS.get(user.permissions);
 
@@ -57,7 +59,7 @@ export  default class Add extends BaseCommand {
 
 
         let msg = `${name} has been added to the ${type} list!`;
-        resp.send(msg);
+        return resp.send(msg);
     }
 
 }
