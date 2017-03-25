@@ -13,7 +13,7 @@ export  default class Create extends BaseCommand {
     }
 
     init() {
-        this._pattern = '\\s+(?<name>[a-z]+)?';
+        this._pattern = '\\s+(?<name>\\w+)';
         this._permission = 'SUPER_ADMIN | ADMIN';
         super.init();
 
