@@ -1,6 +1,5 @@
-import BaseCommand from '../base';
-import {Bracket} from '../../datastore';
-import {PERMISSIONS, addPermissions}  from '../../common';
+import BaseCommand from "../base";
+import {Bracket} from "../../datastore";
 
 
 export  default class Create extends BaseCommand {
@@ -28,9 +27,10 @@ export  default class Create extends BaseCommand {
         });
 
         if (created) {
-            return resp.send(`${name} bracket has been created!`);
+            return resp.send(this.text.bold(name).add('bracket has been created!')._);
         } else {
-            return resp.send(`There is already a bracket named ${name}!`);
+            return resp.send(this.text.error
+                .add(`There is already a bracket named ${this.fmt.bold(name)}!`)._);
         }
 
     }

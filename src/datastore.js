@@ -35,7 +35,7 @@ export const User = sequelize.define('user', {
         defaultValue: PERMISSIONS.USER.value
 
     }
-});
+}, {underscored: true});
 
 export const Config = sequelize.define('config', {
     league: {
@@ -47,9 +47,9 @@ export const Team = sequelize.define('team', {
     name: {
         type: Sequelize.STRING
     }
-});
+}, {underscored: true});
 
-export const TeamMembers = sequelize.define('team_members', {
+export const TeamMembers = sequelize.define('team_member', {
     is_captain: {
         type: Sequelize.BOOLEAN,
         defaultValue: false
@@ -58,44 +58,43 @@ export const TeamMembers = sequelize.define('team_members', {
         type: Sequelize.BOOLEAN,
         defaultValue: false
     }
+}, {underscored: true});
+
+
+Team.belongsToMany(User, {
+    as: 'Members', through: TeamMembers,
+    /*foreignKey: {
+     name: 'team_id',
+     deferrable: Sequelize.Deferrable.INITIALLY_DEFERRED
+     } */
 });
 
-
-Team.belongsToMany(User, {as: 'Members', through: TeamMembers});
 
 export const Bracket = sequelize.define('bracket', {
     name: {
         type: Sequelize.STRING
     }
-});
+}, {underscored: true});
+
 
 Bracket.hasMany(Team, {as: 'Teams'});
 
 
-export const Schedule = sequelize.define('schedules', {
-    team_id: {
-        type: Sequelize.INTEGER,
-        references: {
-            model: Team,
-            key: 'id'
-        }
-    },
-    opponent_id: {
-        type: Sequelize.INTEGER,
-        references: {
-            model: Team,
-            key: 'id'
-        }
-    },
+export const Schedule = sequelize.define('schedule', {
+
     date: {
         type: Sequelize.DATE,
         allowNull: true
     },
     week: {
         type: Sequelize.INTEGER
-    },
+    }
 
-});
+
+}, {underscored: true});
+
+Team.hasOne(Schedule, {as: 'HomeTeam', foreignKey: 'home_team_id'});
+Team.hasOne(Schedule, {as: 'AwayTeam', foreignKey: 'away_team_id'});
 
 
 export const Series = sequelize.define('series', {
@@ -103,8 +102,13 @@ export const Series = sequelize.define('series', {
         type: Sequelize.UUID,
         primaryKey: true
     }
-});
+
+
+}, {underscored: true});
 Series.belongsTo(Schedule);
+//Series.hasOne(Team, {as: 'winner', foreignKey: 'winning_team_id'});
+//Series.hasOne(Team, {as: 'loser', foreignKey: 'losing_team_id'});
+
 
 export const Reporting = sequelize.define('reporting', {
     id: {
@@ -112,7 +116,7 @@ export const Reporting = sequelize.define('reporting', {
         primaryKey: true
     }
 
-});
+}, {underscored: true});
 
 
 

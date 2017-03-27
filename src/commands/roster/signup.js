@@ -1,5 +1,5 @@
 import BaseCommand from "../base";
-import {Bracket, Team, sequelize} from "../../datastore";
+import {Bracket, Team, User, sequelize} from "../../datastore";
 
 
 export  default class Signup extends BaseCommand {
@@ -54,6 +54,7 @@ export  default class Signup extends BaseCommand {
         if (!found.length) {
             return errorInvalidBracket();
         }
+        let bracket = found[0];
 
         if (!teamName) {
             return resp.send(this.text.error.add('Must pass a team name!')._);
@@ -79,7 +80,7 @@ export  default class Signup extends BaseCommand {
             captainName = resp.envelope.user.name;
         }
 
-        let user = robot.brain.userForName(captainName);
+        let user = this.brain.userForName(captainName);
 
         if (!user) {
 
@@ -87,28 +88,53 @@ export  default class Signup extends BaseCommand {
                 .error.add('Invalid captain name').bold(captainName)._);
         }
 
+        let work = sequelize.transaction(async(t) => {
 
-        team = await Team.create({
-            name: teamName
-        });
-        let [captain, created] = await User.findOrCreate({
-            where: {
-                name: user.name
-            }
-        });
+            await sequelize.query('SET CONSTRAINTS ALL DEFERRED');
 
-        let member = await team.addMember(captain, {
-            through: {
+            let opts = {transaction: t};
+            team = await Team.create({
+                name: teamName
+            }, opts);
+            this.log.debug('Created team %j', team.toJSON());
+            let [captain, created] = await User.findOrCreate({
+                transaction: t,
+                where: {
+                    name: user.name
+                }
+            });
+
+            let newPermissions = this.addPermissions(captain.permissions, 'CAPTAIN');
+            this.log.debug('Setting CAPTAIN permissions for %s permissions = %', user.name, newPermissions)
+            await captain.update({
+                permissions: newPermissions.value
+            }, opts);
+
+
+            await team.addMember(captain, {
+                transaction: t,
                 is_captain: true
-            }
+
+            }, opts);
+
+
+            await bracket.addTeam(team.id, opts);
+
+
         });
 
-        return resp.send(
-            this.text.add('You have successfully added')
-                .bold(teamName).add('to').bold(bracketName)
-                .add('bracket with').bold(captain.name)
-                .add('as the captain!')._
-        );
+        return work.then(() => {
+            return resp.send(
+                this.text.add('You have successfully added')
+                    .bold(teamName).add('to').bold(bracketName)
+                    .add('bracket with').bold(user.name)
+                    .add('as the captain!')._
+            );
+        }).catch((e) => {
+            console.log(e);
+            this.log.error(e);
+            return resp.send(this.text.error.add('Error with signing up your team!')._);
+        })
 
 
     }

@@ -55,3 +55,8 @@ export default class TextBuilder {
         return this.toString();
     }
 }
+
+
+class AttachmentBuilder{
+
+}

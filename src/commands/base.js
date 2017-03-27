@@ -2,7 +2,7 @@ const path = require('path');
 const stackTrace = require('stack-trace');
 import {Listener, Middleware} from "hubot";
 import {inspect} from "util";
-import {PERMISSIONS, PERMISSIONS_ALL, createLogger} from "../common";
+import {PERMISSIONS, PERMISSIONS_ALL, createLogger, addPermissions} from "../common";
 import {TextBuilder, AutoFormatter} from "../formatters";
 const NamedRegExp = require('named-regexp-groups');
 
@@ -41,6 +41,17 @@ export default class BaseCommand {
 
     }
 
+    /**
+     * @return PermissionStorage
+     */
+    get permissions() {
+        return this.brain.get('permissions');
+    }
+
+    addPermissions(current, toAdd) {
+
+        return addPermissions(current, toAdd)
+    }
 
     get fmt() {
         return this._fmt;
@@ -63,8 +74,8 @@ export default class BaseCommand {
     }
 
 
-    get permissions() {
-        return this.robot.brain.get('permissions');
+    get brain() {
+        return this.robot.brain;
     }
 
     mount() {

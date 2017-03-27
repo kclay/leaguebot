@@ -70,16 +70,19 @@ function extractEnumValue(e) {
     return `${e.toString()}`.split('|').map((name) => name.trim());
 }
 export function addPermissions(current, toAdd) {
-    if (current.has(toAdd)) {
+
+    if (current.hasOwnProperty('has') && current.has(toAdd)) {
         return current;
     }
 
+    if (typeof current === 'number') {
+        current = PERMISSIONS.get(current);
+    }
     let currentValue = extractEnumValue(current);
 
     let toAddValue = extractEnumValue(toAdd);
 
     let updated = unique([].concat(currentValue, toAddValue)).join(' | ');
-
 
     return PERMISSIONS.get(updated);
 }
@@ -96,6 +99,12 @@ export function removePermissions(current, toRemove) {
 }
 
 export function hasAnyPermissions(current, toLookup) {
+    if (typeof toLookup == 'string') {
+        toLookup = PERMISSIONS.get(toLookup);
+    }
+    if (typeof current === 'number') {
+        current = PERMISSIONS.get(current);
+    }
     return extractEnumValue(current).filter(e => toLookup.has(e)).length > 0;
 
 }

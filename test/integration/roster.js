@@ -3,7 +3,8 @@
 const Helper = require('hubot-test-helper');
 const expect = require('chai').expect;
 const http = require('http');
-import {PermissionStorage} from "../../src/common";
+import {PermissionStorage, hasAnyPermissions} from "../../src/common";
+import {Team} from "../../src/datastore";
 
 const helper = new Helper('../../src/compiled-scripts/001-index.js'); // path to file you want to test
 
@@ -12,6 +13,7 @@ const ID = '1';
 const OWNER = 'bot-owner';
 const BRACKET = 'bracket01';
 const BRACKET2 = 'bracket02';
+const TEAM = 'team01';
 let permissions;
 describe('roster', () => {
 
@@ -23,7 +25,7 @@ describe('roster', () => {
         room.robot.brain.set('permissions', permissions);
         room.robot.brain.userForId(ID, {
             id: ID,
-            name: USER_NAME
+            name: OWNER
         })
     });
     afterEach(() => room.destroy());
@@ -62,6 +64,31 @@ describe('roster', () => {
             ['hubot', `Error : Must pass a team name!`]
         )
     })
+
+    it('should signup a new team', async() => {
+        await room.user.say(OWNER, `!bracket create ${BRACKET}`);
+        await room.user.say(OWNER, `!roster signup ${BRACKET} ${TEAM}`);
+
+        let team = await Team.findOne({
+            where: {
+                name: TEAM
+            }
+        });
+        team.name.should.equal(TEAM);
+
+        let members = await team.getMembers();
+
+        members.should.have.lengthOf(1);
+
+
+        let captain = members[0];
+
+        captain.team_member.is_captain.should.equal(true);
+        captain.name.should.equal(OWNER);
+        hasAnyPermissions(captain.permissions, 'CAPTAIN').should.be.true();
+
+
+    });
 
 
 });
