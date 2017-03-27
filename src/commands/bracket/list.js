@@ -13,8 +13,6 @@ export  default class List extends BaseCommand {
 
 
     async _handle(resp) {
-
-
         let brackets = await Bracket.findAll({
             attributes: ['name'],
             order: [
@@ -23,17 +21,15 @@ export  default class List extends BaseCommand {
         });
 
         if (!brackets.length) {
-
             return resp.send('No brackets created!');
         }
-
 
         let text = this.text
             .add('The following brackets are available bracket has been created\n');
 
         text.add(brackets.map((b) => text.fmt.bold(b.name)).join(', '));
 
-        return resp.send(`${text}`);
+        return resp.send(text._);
 
 
     }

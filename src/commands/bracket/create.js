@@ -15,13 +15,10 @@ export  default class Create extends BaseCommand {
         this._pattern = '\\s+(?<name>\\w+)';
         this._permission = 'SUPER_ADMIN | ADMIN';
         super.init();
-
     }
 
     async _handle(resp) {
         let {name} = resp.match.groups;
-
-
         let [bracket, created] = await Bracket.findOrCreate({
             where: {name: name}
         });

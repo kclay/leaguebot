@@ -57,7 +57,12 @@ describe('bracket', () => {
     })
 
     it('should display teams', async() => {
+        await room.user.say(OWNER, `!bracket create ${BRACKET}`);
         await room.user.say(OWNER, `!bracket teams ${BRACKET}`);
+
+        room.messages.pop().should.deepEqual(
+            ['hubot', `Error : There is already a bracket named ${BRACKET}!`]
+        )
     })
 
 

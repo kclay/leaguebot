@@ -5,6 +5,7 @@ import {inspect} from "util";
 import {PERMISSIONS, PERMISSIONS_ALL, createLogger, addPermissions} from "../common";
 import {TextBuilder, AutoFormatter} from "../formatters";
 const NamedRegExp = require('named-regexp-groups');
+const Promise = require('bluebird');
 
 
 const TICKER = (cb) => {
@@ -37,8 +38,6 @@ export default class BaseCommand {
         }
         this.log.debug('Added %s Command', this.id);
         this._pattern = this._buildRegex();
-
-
     }
 
     /**
@@ -49,7 +48,6 @@ export default class BaseCommand {
     }
 
     addPermissions(current, toAdd) {
-
         return addPermissions(current, toAdd)
     }
 
@@ -107,8 +105,8 @@ export default class BaseCommand {
 
 
         let text = message.text;
-
         let match = this._pattern.exec(text);
+
         if (match) {
             this.log.debug('Matched message %s with %j', text, match.groups);
         }

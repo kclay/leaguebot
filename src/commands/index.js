@@ -48,7 +48,6 @@ class Commands {
         return this.registry[name];
     }
 
-
     has(name) {
         return !!this.registry[name];
     }

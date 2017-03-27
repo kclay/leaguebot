@@ -23,7 +23,6 @@ export  default class Signup extends BaseCommand {
 
     async _handle(resp) {
         let {bracketName, teamName, captainName} =resp.match.groups;
-
         let brackets = await Bracket.findAll({
             order: [
                 ['name', 'ASC']
@@ -31,7 +30,6 @@ export  default class Signup extends BaseCommand {
         });
 
         if (!brackets.length) {
-
             return resp.send(this.text.error
                 .add('No brackets available for signup.')._);
         }
@@ -46,7 +44,6 @@ export  default class Signup extends BaseCommand {
 
         if (!bracketName) {
             return errorInvalidBracket();
-
         }
 
         let found = brackets.filter(b => b.name == bracketName);
@@ -54,12 +51,12 @@ export  default class Signup extends BaseCommand {
         if (!found.length) {
             return errorInvalidBracket();
         }
+
         let bracket = found[0];
 
         if (!teamName) {
             return resp.send(this.text.error.add('Must pass a team name!')._);
         }
-
 
         let team = await sequelize
             .query('SELECT * from teams WHERE lower(name) = ?',
@@ -70,11 +67,9 @@ export  default class Signup extends BaseCommand {
             );
 
         if (team.length) {
-
             return resp.send(this.text.error.add('Sorry, there is already team by the name')
                 .bold(teamName)._);
         }
-
 
         if (!captainName) {
             captainName = resp.envelope.user.name;
@@ -83,7 +78,6 @@ export  default class Signup extends BaseCommand {
         let user = this.brain.userForName(captainName);
 
         if (!user) {
-
             return resp.send(this.text
                 .error.add('Invalid captain name').bold(captainName)._);
         }
@@ -96,7 +90,9 @@ export  default class Signup extends BaseCommand {
             team = await Team.create({
                 name: teamName
             }, opts);
+
             this.log.debug('Created team %j', team.toJSON());
+
             let [captain, created] = await User.findOrCreate({
                 transaction: t,
                 where: {
@@ -105,22 +101,19 @@ export  default class Signup extends BaseCommand {
             });
 
             let newPermissions = this.addPermissions(captain.permissions, 'CAPTAIN');
+
             this.log.debug('Setting CAPTAIN permissions for %s permissions = %', user.name, newPermissions)
+
             await captain.update({
                 permissions: newPermissions.value
             }, opts);
 
-
             await team.addMember(captain, {
                 transaction: t,
                 is_captain: true
-
             }, opts);
 
-
-            await bracket.addTeam(team.id, opts);
-
-
+            return bracket.addTeam(team.id, opts);
         });
 
         return work.then(() => {

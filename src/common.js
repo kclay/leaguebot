@@ -31,7 +31,6 @@ export class PermissionStorage {
     value(id) {
         return this._storage[id]
             ? this._storage[id] : this._storage[id] = PERMISSIONS.USER.value;
-
     }
 
     get(id) {
@@ -78,6 +77,7 @@ export function addPermissions(current, toAdd) {
     if (typeof current === 'number') {
         current = PERMISSIONS.get(current);
     }
+
     let currentValue = extractEnumValue(current);
 
     let toAddValue = extractEnumValue(toAdd);
@@ -92,7 +92,6 @@ export function removePermissions(current, toRemove) {
     let updated = currentValue.filter((value) => {
         return !toRemoveValue.includes(value)
     }).join(' | ');
-
 
     return PERMISSIONS.get(updated);
 

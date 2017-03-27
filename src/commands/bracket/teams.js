@@ -20,8 +20,6 @@ export  default class Teams extends BaseCommand {
 
     async _handle(resp) {
         let {name} = resp.match.groups;
-
-
         let bracket = await Bracket.findOne({
             where: {
                 name: name
@@ -29,20 +27,11 @@ export  default class Teams extends BaseCommand {
         });
 
         if (!bracket) {
-
-            return resp.send(this.text.error.add('Invalid bracket name!'));
+            return resp.send(this.text.error.add('Invalid bracket name!')._);
         }
 
-
         let teams = await bracket.getTeams();
-
-
-        let text = table([
-                ['Name', 'Points']
-            ].concat(teams.map(t => [t.name, 1])),
-            {
-                align: ['l', 'c']
-            });
+        let text = teams.map(t => `• ${t.name} - Points = 1`).join('\n');
         let attachment = {
             title: `Teams of ${bracket.name} bracket.`,
             text: text,
@@ -50,15 +39,10 @@ export  default class Teams extends BaseCommand {
 
         };
         let payload = {
-
             attachments: [attachment]
-
         };
 
-
         return resp.send(payload);
-
-
     }
 
 }

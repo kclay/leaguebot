@@ -45,10 +45,7 @@ export default class TextBuilder {
 
     wrap(cb, method) {
         let v = cb(new this.constructor(this.fmt))._;
-
-
         return this[method](v);
-
     }
 
     get _() {
@@ -57,6 +54,6 @@ export default class TextBuilder {
 }
 
 
-class AttachmentBuilder{
+class AttachmentBuilder {
 
 }
