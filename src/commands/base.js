@@ -40,6 +40,8 @@ export default class BaseCommand {
         this._pattern = this._buildRegex();
     }
 
+
+
     /**
      * @return PermissionStorage
      */

@@ -1,6 +1,8 @@
-import {PERMISSIONS} from "./common";
+import {PERMISSIONS, hasAnyPermissions} from "./common";
 require('dotenv').config();
+
 export const Sequelize = require('sequelize');
+
 const Promise = require('bluebird');
 
 export const sequelize = new Sequelize(
@@ -30,12 +32,42 @@ export const User = sequelize.define('user', {
     destiny_id: {
         type: Sequelize.STRING
     },
+    account_name: {
+        type: Sequelize.STRING
+    },
+    twitch: {
+        type: Sequelize.STRING
+    },
     permissions: {
         type: Sequelize.INTEGER,
         defaultValue: PERMISSIONS.USER.value
 
     }
-}, {underscored: true});
+}, {
+    underscored: true,
+
+    instanceMethods: {
+        isCaptain: function () {
+            return hasAnyPermissions(this.permissions, 'CAPTAIN');
+        },
+        getTeam: async function () {
+
+            let member = await TeamMembers.findOne({
+
+                where: {
+                    user_id: this.id
+                },
+
+                include: {
+                    model: Team,
+
+                }
+            });
+            return member ? member.team : null;
+        }
+
+    }
+});
 
 export const Config = sequelize.define('config', {
     league: {
@@ -54,11 +86,13 @@ export const TeamMembers = sequelize.define('team_member', {
         type: Sequelize.BOOLEAN,
         defaultValue: false
     },
-    sub: {
+    is_sub: {
         type: Sequelize.BOOLEAN,
         defaultValue: false
     }
 }, {underscored: true});
+
+TeamMembers.belongsTo(Team);
 
 
 Team.belongsToMany(User, {

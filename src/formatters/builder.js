@@ -10,7 +10,9 @@ export default class TextBuilder {
     }
 
     _append(method, text) {
-        this._blocks.push(this.fmt[method](text));
+        if (text) {
+            this._blocks.push(this.fmt[method](text));
+        }
         return this;
     }
 
@@ -27,7 +29,9 @@ export default class TextBuilder {
     }
 
     add(text) {
-        this._blocks.push(text);
+        if (text) {
+            this._blocks.push(text);
+        }
         return this;
     }
 
@@ -40,7 +44,7 @@ export default class TextBuilder {
     }
 
     get error() {
-        return this.bold('Error :');
+        return this.wrap((t) => t.bold('Error :'), 'italic');
     }
 
     wrap(cb, method) {

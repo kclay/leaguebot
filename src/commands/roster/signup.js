@@ -96,7 +96,7 @@ export  default class Signup extends BaseCommand {
             let [captain, created] = await User.findOrCreate({
                 transaction: t,
                 where: {
-                    name: user.name
+                    _id: user.id
                 }
             });
 
@@ -105,6 +105,7 @@ export  default class Signup extends BaseCommand {
             this.log.debug('Setting CAPTAIN permissions for %s permissions = %', user.name, newPermissions)
 
             await captain.update({
+                name: user.name,
                 permissions: newPermissions.value
             }, opts);
 
