@@ -1,5 +1,6 @@
 import BaseCommand from "../base";
 import {User} from "../../datastore";
+import {addPermissions} from "../../common";
 
 
 export  default class Add extends BaseCommand {
@@ -75,11 +76,16 @@ export  default class Add extends BaseCommand {
                 .add('is already a member of').bold(currentTeam.name)._);
         }
 
+        let permissions = addPermissions(user.permissions, 'TEAM_MEMBER').value;
         user = await user.update({
             twitch: twitch,
             name: teamMate.name,
-            account_name: account
+            account_name: account,
+            permissions: permissions
         });
+
+        this.permissions
+            .update(user.id, permissions);
 
         is_sub = !!is_sub;
 
@@ -91,7 +97,7 @@ export  default class Add extends BaseCommand {
             this.text.bold(user.name)
                 .add('has been added to')
                 .bold(team.name)
-                .add(is_sub ? `as a ${this.fmt.bold('sub')}` : '')._
+                .add(is_sub ? `as a ${this.fmt.bold('sub')}` : '').e
         );
 
 

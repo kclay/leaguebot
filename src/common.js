@@ -4,6 +4,7 @@ export const PERMISSIONS = new Enum([
     'SUPER_ADMIN',
     'ADMIN',
     'CAPTAIN',
+    'TEAM_MEMBER',
     'USER'
 ]);
 
@@ -66,6 +67,12 @@ function unique(a) {
     return us;
 }
 function extractEnumValue(e) {
+    if (typeof e === 'string') {
+        e = PERMISSIONS.get(e);
+    } else if (typeof e === 'number') {
+        e = PERMISSIONS.get(e);
+    }
+
     return `${e.toString()}`.split('|').map((name) => name.trim());
 }
 export function addPermissions(current, toAdd) {
@@ -74,9 +81,6 @@ export function addPermissions(current, toAdd) {
         return current;
     }
 
-    if (typeof current === 'number') {
-        current = PERMISSIONS.get(current);
-    }
 
     let currentValue = extractEnumValue(current);
 

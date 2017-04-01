@@ -3,8 +3,9 @@
 const Helper = require('hubot-test-helper');
 const expect = require('chai').expect;
 const http = require('http');
+const should = require('should');
 import {PermissionStorage, hasAnyPermissions} from "../../src/common";
-import {Team} from "../../src/datastore";
+import {Team, User} from "../../src/datastore";
 
 const helper = new Helper('../../src/compiled-scripts/001-index.js'); // path to file you want to test
 
@@ -150,6 +151,69 @@ describe('roster', () => {
         let members = await team.getMembers();
 
         members.should.have.lengthOf(2);
+
+    });
+
+    it('should return error if user is not found when trying to remove', async() => {
+        await room.user.say(OWNER, `!bracket create ${BRACKET}`);
+        await room.user.say(OWNER, `!roster signup ${BRACKET} ${TEAM}`);
+        await room.user.say(OWNER, `!roster remove @unknown_user system_account`);
+
+        room.messages.pop().should.deepEqual(
+            ['hubot', `Error : User unknown_user not found!`]
+        );
+    })
+
+    it('should return error if user is not part of team when trying to remove', async() => {
+        await room.user.say(OWNER, `!bracket create ${BRACKET}`);
+        await room.user.say(OWNER, `!roster signup ${BRACKET} ${TEAM}`);
+        await room.user.say(OWNER, `!roster remove @${TEAM_MEMBER} system_account`);
+
+        room.messages.pop().should.deepEqual(
+            ['hubot', `Error : ${TEAM_MEMBER} is not part of any teams!`]
+        );
+    })
+
+    it('should return error if user is not part of captain team when trying to remove', async() => {
+        await room.user.say(OWNER, `!bracket create ${BRACKET}`);
+        await room.user.say(OWNER, `!roster signup ${BRACKET} ${TEAM}`);
+        await room.user.say(TEAM_MEMBER, `!roster signup ${BRACKET} team02`);
+        await room.user.say(OWNER, `!roster remove @${TEAM_MEMBER} system_account`);
+
+        let user = await User.findOne({
+            where: {
+                _id: TEAM_MEMBER_ID
+            }
+        })
+
+        let team = await user.getTeam();
+
+        should.exist(team);
+
+        room.messages.pop().should.deepEqual(
+            ['hubot', `Error : Nice try, but you can\'t remove ${TEAM_MEMBER} if they are not part of your team!`]
+        );
+    });
+
+    it('should remove a user from the team roster', async() => {
+        await room.user.say(OWNER, `!bracket create ${BRACKET}`);
+        await room.user.say(OWNER, `!roster signup ${BRACKET} ${TEAM}`);
+        await room.user.say(OWNER, `!roster add @${TEAM_MEMBER} system_account`);
+        await room.user.say(OWNER, `!roster remove @${TEAM_MEMBER}`);
+
+        let team = await Team.findOne({
+            where: {
+                name: TEAM
+            }
+        })
+        let members = await team.getMembers();
+
+        members.should.have.lengthOf(1);
+
+        room.messages.pop().should.deepEqual(
+            ['hubot', `${TEAM_MEMBER} has been removed from ${TEAM}!`]
+        );
+
 
     })
 

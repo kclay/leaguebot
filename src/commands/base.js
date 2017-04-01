@@ -41,6 +41,10 @@ export default class BaseCommand {
     }
 
 
+    userResolve(resp) {
+        let name = typeof resp === 'string' ? resp : resp.envelope.user.name;
+        return this.brain.userForName(name);
+    }
 
     /**
      * @return PermissionStorage
@@ -156,7 +160,7 @@ class AsyncListener extends Listener {
             // callback and calls done (never calls 'next')
             let executeListener = (context, done) => {
                 this.robot.logger.debug(
-                    'Executing listener callback for Message \'${message}\'');
+                    `Executing listener callback for Message \'${message}\'`);
                 let p = Promise.resolve(true);
                 let rtn;
                 try {

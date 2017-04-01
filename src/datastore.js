@@ -79,7 +79,19 @@ export const Team = sequelize.define('team', {
     name: {
         type: Sequelize.STRING
     }
-}, {underscored: true});
+}, {
+    underscored: true,
+    classMethods: {
+        byName: async function (name) {
+
+            return await Team.findOne({
+                where: sequelize.where(
+                    sequelize.fn('lower', sequelize.col('name')),
+                    name.toLowerCase())
+            })
+        }
+    }
+});
 
 export const TeamMembers = sequelize.define('team_member', {
     is_captain: {

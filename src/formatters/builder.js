@@ -55,6 +55,14 @@ export default class TextBuilder {
     get _() {
         return this.toString();
     }
+
+    get e() {
+        return this._ + '!';
+    }
+
+    get p() {
+        return this._ + '.';
+    }
 }
 
 
