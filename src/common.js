@@ -133,6 +133,13 @@ export function createLogger(logger, banner) {
     }
 }
 
+export const flatten = arr => arr.reduce(
+    (acc, val) => acc.concat(
+        Array.isArray(val) ? flatten(val) : val
+    ),
+    []
+);
+
 export const BotConfig = {
     league: {
         signup_enabled: true

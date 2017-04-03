@@ -160,16 +160,17 @@ class AsyncListener extends Listener {
             // callback and calls done (never calls 'next')
             let executeListener = (context, done) => {
                 this.robot.logger.debug(
-                    `Executing listener callback for Message \'${message}\'`);
+                    `ASYNC Executing listener callback for Message \'${message}\'`);
                 let p = Promise.resolve(true);
                 let rtn;
                 try {
+
 
                     p = Promise.resolve(this.callback(context.response));
                 } catch (err) {
                     this.robot.emit('error', err, context.response);
                 }
-                p.then(() => {
+                p.then((v) => {
                     return done();
                 })
 

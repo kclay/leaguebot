@@ -139,8 +139,11 @@ export const Schedule = sequelize.define('schedule', {
 
 }, {underscored: true});
 
-Team.hasOne(Schedule, {as: 'HomeTeam', foreignKey: 'home_team_id'});
-Team.hasOne(Schedule, {as: 'AwayTeam', foreignKey: 'away_team_id'});
+//Team.hasOne(Schedule, {as: 'HomeTeam', foreignKey: 'home_team_id'});
+//Team.hasOne(Schedule, {as: 'AwayTeam', foreignKey: 'away_team_id'});
+Schedule.belongsTo(Team, {as: 'HomeTeam', foreignKey: 'home_team_id'});
+Schedule.belongsTo(Team, {as: 'AwayTeam', foreignKey: 'away_team_id'});
+Bracket.hasMany(Schedule);
 
 
 export const Series = sequelize.define('series', {
