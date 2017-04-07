@@ -1,5 +1,5 @@
 import BaseCommand from "../base";
-import {Team, Bracket, sequelize, Schedule} from "../../datastore";
+import {Bracket, Schedule, sequelize, Team} from "../../datastore";
 const GoogleSpreadsheet = require('google-spreadsheet');
 const csv = require('csv-stream');
 const request = require('request');
@@ -52,7 +52,7 @@ export  default class Import extends BaseCommand {
     }
 
     async _handle(resp) {
-        let {bracketName, sheetId} =resp.match.groups;
+        let {bracketName, sheetId} = resp.match.groups;
 
         let bracket = await Bracket.findOne({
             where: {
@@ -79,7 +79,7 @@ export  default class Import extends BaseCommand {
         }
 
 
-        let weeks = await Promise.map(info.worksheets, async(sheet) => {
+        let weeks = await Promise.map(info.worksheets, async (sheet) => {
             let url = sheet._links['http://schemas.google.com/spreadsheets/2006#exportcsv']
 
 
@@ -104,7 +104,7 @@ export  default class Import extends BaseCommand {
                 {$any: teamNames}
             )
         });
-        if (teams.length != teamNames.length) {
+        if (teams.length !== teamNames.length) {
 
             let foundNames = teams.map(team => team.name.toLowerCase());
             let missing = teamNames.filter(name => {
@@ -122,17 +122,15 @@ export  default class Import extends BaseCommand {
         });
 
 
-        await Promise.each(weeks, async(week) => {
+        await Promise.each(weeks, async (week) => {
             let games = week.map(game => {
 
-                let entry = {
+                return {
                     home_team_id: teamsByName[game.Home].id,
                     away_team_id: teamsByName[game.Away].id,
                     bracket_id: bracket.id,
                     week: parseInt(game.Week, 10)
                 };
-
-                return entry;
             });
 
             return await Schedule.bulkCreate(games)
@@ -141,7 +139,9 @@ export  default class Import extends BaseCommand {
         });
 
 
-        return weeks;
+        return resp.send(this.text.add('Created schedule for')
+            .add(bracketName)
+            .add('bracket').e)
 
 
     }

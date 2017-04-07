@@ -1,4 +1,4 @@
-import {PERMISSIONS, hasAnyPermissions} from "./common";
+import {hasAnyPermissions, PERMISSIONS} from "./common";
 require('dotenv').config();
 
 export const Sequelize = require('sequelize');
@@ -128,6 +128,11 @@ Bracket.hasMany(Team, {as: 'Teams'});
 
 export const Schedule = sequelize.define('schedule', {
 
+    id: {
+        primaryKey: true,
+        defaultValue: Sequelize.UUIDV4,
+        type: Sequelize.UUID
+    },
     date: {
         type: Sequelize.DATE,
         allowNull: true
