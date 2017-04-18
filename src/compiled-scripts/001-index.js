@@ -1,6 +1,6 @@
 'use strict';
 
-import {sequelize, Config} from "../datastore";
+import {Config, sequelize} from "../datastore";
 import {BotConfig} from "../common";
 import Commands from "../commands";
 
@@ -15,7 +15,7 @@ module.exports = (robot) => {
 
     };
     if (process.env.NODE_ENV !== 'test') {
-        sequelize.sync().then(async() => {
+        sequelize.sync().then(async () => {
             let config = await Config.findOne();
             if (!config) {
                 config = await Config.create(BotConfig)

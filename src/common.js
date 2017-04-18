@@ -11,12 +11,12 @@ export const PERMISSIONS = new Enum([
 export const PERMISSIONS_ALL = PERMISSIONS.get(PERMISSIONS.enums.map(e => e.key).join(' | '));
 
 
-export const CHANNEL = {
-    DM: 0,
-    PUBLIC: 1
+export const CHANNELS = new Enum([
+    'DM',
+    'PUBLIC'
+]);
 
-};
-
+export const CHANNELS_ALL = CHANNELS.get(CHANNELS.enums.map(e => e.key).join(' | '));
 export class PermissionStorage {
     _storage = {};
 
@@ -49,8 +49,7 @@ export class PermissionStorage {
 }
 
 
-//PERMISSIONS.ADMINS = PERMISSIONS.get('BOT_OWNER | SUPER_ADMIN | ADMIN');
-export const CHANNEL_BOTH = CHANNEL.DM | CHANNEL.PUBLIC;
+
 
 function unique(a) {
     let lt = {},       // fast lookup table
@@ -145,3 +144,6 @@ export const BotConfig = {
         signup_enabled: true
     }
 };
+
+
+

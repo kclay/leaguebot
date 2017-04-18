@@ -1,5 +1,5 @@
 import BaseCommand from "../base";
-import {Bracket, Team, User, sequelize} from "../../datastore";
+import {Bracket, sequelize, Team, User} from "../../datastore";
 
 
 export  default class Signup extends BaseCommand {
@@ -18,11 +18,12 @@ export  default class Signup extends BaseCommand {
 
     init() {
         this._pattern = '\\s*(?<bracketName>\\w+)?\\s*(?<teamName>\\w+)?\\s*(?<captainName>\\w+)?';
+        this._channel = 'DM';
         super.init();
     }
 
     async _handle(resp) {
-        let {bracketName, teamName, captainName} =resp.match.groups;
+        let {bracketName, teamName, captainName} = resp.match.groups;
         let brackets = await Bracket.findAll({
             order: [
                 ['name', 'ASC']
@@ -82,7 +83,7 @@ export  default class Signup extends BaseCommand {
                 .error.add('Invalid captain name').bold(captainName)._);
         }
 
-        let work = sequelize.transaction(async(t) => {
+        let work = sequelize.transaction(async (t) => {
 
             await sequelize.query('SET CONSTRAINTS ALL DEFERRED');
 

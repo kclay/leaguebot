@@ -59,6 +59,10 @@ export default class TextBuilder {
     get e() {
         return this._ + '!';
     }
+    get _e(){
+
+        return this;
+    }
 
     get p() {
         return this._ + '.';

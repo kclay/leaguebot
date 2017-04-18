@@ -1,20 +1,33 @@
-import {PERMISSIONS, hasAnyPermissions, createLogger, PermissionStorage} from '../common';
+import {createLogger, PermissionStorage} from "../common";
 
-import {User} from '../datastore';
+import {User} from "../datastore";
 
 module.exports = (robot) => {
 
     let log = createLogger(robot.logger, 'middleware.permission');
     let permissions = new PermissionStorage();
     robot.brain.set('permissions', permissions);
-    robot.listenerMiddleware(async(ctx, next, done) => {
+    robot.listenerMiddleware(async (ctx, next, done) => {
 
 
         let listener = ctx.listener;
         let {id, permission, channel} = ctx.listener.options;
 
 
-        let {user, room}= ctx.response.envelope;
+        let resp = ctx.response;
+        let {user, room} = resp.envelope;
+        console.log(ctx);
+
+        if (!channel.is('DM | PUBLIC')) {
+
+
+            if (channel.is('DM') && room[0] !== 'D') {
+
+                resp.send('This command is only allowed as a direct message!');
+                return done()
+            }
+
+        }
 
         if (permission.has('USER')) {
             log.debug('%s has permission = USER', id);

@@ -2,8 +2,8 @@ const path = require('path');
 const stackTrace = require('stack-trace');
 import {Listener, Middleware} from "hubot";
 import {inspect} from "util";
-import {PERMISSIONS, PERMISSIONS_ALL, createLogger, addPermissions} from "../common";
-import {TextBuilder, AutoFormatter} from "../formatters";
+import {addPermissions, CHANNELS, CHANNELS_ALL, createLogger, PERMISSIONS, PERMISSIONS_ALL} from "../common";
+import {AutoFormatter, TextBuilder} from "../formatters";
 const NamedRegExp = require('named-regexp-groups');
 const Promise = require('bluebird');
 
@@ -19,7 +19,7 @@ export default class BaseCommand {
 
     _id;
     _permission = PERMISSIONS_ALL;
-    _channel;
+    _channel = CHANNELS_ALL;
     _enabled = true;
     log;
     _pattern = '';
@@ -46,6 +46,11 @@ export default class BaseCommand {
         return this.brain.userForName(name);
     }
 
+    userResolveId(resp) {
+        let user = this.userResolve(resp);
+        return user && user.id ? '' + user.id : null;
+    }
+
     /**
      * @return PermissionStorage
      */
@@ -55,6 +60,17 @@ export default class BaseCommand {
 
     addPermissions(current, toAdd) {
         return addPermissions(current, toAdd)
+    }
+
+    getTimezone(idOrName) {
+        let user = this.userResolve(++idOrName);
+        if (!user) user = this.brain.userForId(idOrName);
+
+        if (user && user.slack.tz) {
+            return user.slack.tz;
+        }
+        return 'America/Chicago';
+
     }
 
     get fmt() {
@@ -73,6 +89,9 @@ export default class BaseCommand {
 
         if (this._permission.constructor === String) {
             this._permission = PERMISSIONS.get(this._permission);
+        }
+        if (this._channel.constructor === String) {
+            this._channel = CHANNELS.get(this._channel);
         }
         this.log.debug('Called init() for %s', this.id);
     }
@@ -123,7 +142,7 @@ export default class BaseCommand {
 
     _buildRegex() {
         let [command, trigger] = this.id.split('.');
-        trigger = trigger == 'root' ? '' : ` ${trigger}`;
+        trigger = trigger === 'root' ? '' : ` ${trigger}`;
 
         let value = `!${command}${trigger}${this._pattern}`;
         this.log.debug('Creating matcher for %s = %s', this.id, value);
@@ -139,13 +158,13 @@ class AsyncListener extends Listener {
         let match;
 
         // middleware argument is optional
-        if (cb == null && typeof middleware === 'function') {
+        if (cb === null && typeof middleware === 'function') {
             cb = middleware;
             middleware = undefined;
         }
 
         // ensure we have a Middleware object
-        if (middleware == null) {
+        if (middleware === null) {
             middleware = new Middleware(this.robot);
         }
 

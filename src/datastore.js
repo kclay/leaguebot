@@ -160,6 +160,7 @@ export const Series = sequelize.define('series', {
 
 }, {underscored: true});
 Series.belongsTo(Schedule);
+Schedule.hasOne(Series);
 //Series.hasOne(Team, {as: 'winner', foreignKey: 'winning_team_id'});
 //Series.hasOne(Team, {as: 'loser', foreignKey: 'losing_team_id'});
 

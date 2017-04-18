@@ -4,8 +4,8 @@ const Helper = require('hubot-test-helper');
 const expect = require('chai').expect;
 const http = require('http');
 const should = require('should');
-import {PermissionStorage} from "../../src/common";
-import {Bracket, Team, Schedule} from "../../src/datastore";
+import {addPermissions, PermissionStorage} from "../../src/common";
+import {Bracket, Schedule, Team, User} from "../../src/datastore";
 
 
 const helper = new Helper('../../src/compiled-scripts/001-index.js'); // path to file you want to test
@@ -19,7 +19,7 @@ describe('schedule', () => {
 
     let room;
 
-    beforeEach(async() => {
+    beforeEach(async () => {
         room = helper.createRoom({httpd: false});
         permissions = new PermissionStorage();
         room.robot.brain.set('permissions', permissions);
@@ -44,7 +44,7 @@ describe('schedule', () => {
     });
     afterEach(() => room.destroy());
 
-    it('should import schedule', async() => {
+    it('should import schedule', async () => {
 
 
         await room.user.say(OWNER, '!schedule import beginners 16Y07aaP70eFIAVembrkl9HHjwLTip4xpJSNVSexokEk');
@@ -65,7 +65,7 @@ describe('schedule', () => {
             ]
         ];
 
-        const getSchedules = async(week) => {
+        const getSchedules = async (week) => {
             return await Schedule.findAll({
                 where: {
                     week: week
@@ -82,7 +82,8 @@ describe('schedule', () => {
             schedules.forEach(game => {
                 let found = matches[index].find(a => {
 
-                    return game.HomeTeam.name == a[0] && game.AwayTeam.name == a[1];
+                    return game.HomeTeam.name === a[0]
+                        && game.AwayTeam.name === a[1];
                 });
                 let obj = {
                     week: game.week,
@@ -99,6 +100,48 @@ describe('schedule', () => {
 
 
     });
+
+    it('should return upcoming game', async () => {
+
+        const HOME_CAPTAIN = 'captain01';
+        const AWAY_CAPTAIN = 'captain02';
+        const HOME_TEAM = 'Ankle Biters';
+        const AWAY_TEAM = 'DEFY';
+
+        const createCaptainAndTeam = async (name, teamName, id) => {
+            let captain = await User.create({
+                name: name,
+                _id: id
+            });
+
+            room.robot.brain.userForId(id, {
+                id: id,
+                name: name
+            })
+            let team = await Team.findOne({
+                where: {
+                    name: teamName
+                }
+            });
+
+            await captain.update({
+                permissions: addPermissions(captain.permissions, 'CAPTAIN').value
+            });
+            await team.addMember(captain.id, {
+                is_captain: true
+            });
+            return [captain, team];
+        };
+
+        let [homeCaptain, homeTeam] = await createCaptainAndTeam(HOME_CAPTAIN, HOME_TEAM, 1);
+        let [awayCaptain, awayTeam] = await createCaptainAndTeam(AWAY_CAPTAIN, AWAY_TEAM, 2);
+
+        await room.user.say(OWNER, '!schedule import beginners 16Y07aaP70eFIAVembrkl9HHjwLTip4xpJSNVSexokEk');
+
+        await room.user.say(HOME_CAPTAIN, '!schedule upcoming');
+
+
+    })
 
 
 });
