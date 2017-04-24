@@ -3,10 +3,12 @@ import {createLogger, PermissionStorage} from "../common";
 import {User} from "../datastore";
 
 module.exports = (robot) => {
+    //if (!process.env.LEAGUE_BOT_ENABLED) return;
 
     let log = createLogger(robot.logger, 'middleware.permission');
     let permissions = new PermissionStorage();
     robot.brain.set('permissions', permissions);
+    let provider = robot.brain.get('provider');
     robot.listenerMiddleware(async (ctx, next, done) => {
 
 
@@ -16,16 +18,16 @@ module.exports = (robot) => {
 
         let resp = ctx.response;
         let {user, room} = resp.envelope;
-        console.log(ctx);
+
 
         if (!channel.is('DM | PUBLIC')) {
 
 
-            if (channel.is('DM') && room[0] !== 'D') {
+           /* if (channel.is('DM') && provider.Checks.isDM(robot, room)) {
 
                 resp.send('This command is only allowed as a direct message!');
                 return done()
-            }
+            }      */
 
         }
 

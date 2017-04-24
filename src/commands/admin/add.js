@@ -1,6 +1,6 @@
 import BaseCommand from "../base";
 import {User} from "../../datastore";
-import {PERMISSIONS, addPermissions} from "../../common";
+import {addPermissions, PERMISSIONS} from "../../common";
 
 
 export  default class Add extends BaseCommand {
@@ -28,7 +28,7 @@ export  default class Add extends BaseCommand {
         let {name, asSuper} = resp.match.groups;
         let type = asSuper ? 'SuperAdmin' : 'Admin';
 
-        let u = this.robot.brain.userForName(name);
+        let u = this.userResolve(name);
         if (!u) {
             return resp.send(`There is no user named ${name}!`);
         }

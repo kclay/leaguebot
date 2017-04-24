@@ -1,4 +1,5 @@
-export default class SlackFormatter {
+import DefaultFormatter from "../../core/formatter";
+export default class SlackFormatter extends DefaultFormatter {
 
     id = 'slack';
 

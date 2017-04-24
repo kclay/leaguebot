@@ -1,6 +1,6 @@
 export default class DefaultFormatter {
 
-    id = 'default';
+    id;
 
     bold(text) {
         return text;

@@ -27,7 +27,7 @@ export  default class Add extends BaseCommand {
 
 
         let {is_sub, name, account, twitch} = resp.match.groups;
-        let captain = this.brain.userForName(resp.envelope.user.name);
+        let captain = this.userResolve(resp);
 
         captain = await User.findOne({
             where: {
@@ -42,7 +42,7 @@ export  default class Add extends BaseCommand {
                 .add('Opps, this shouldn\'t have happened , sending to bot admin')._)
         }
 
-        let teamMate = this.brain.userForName(name);
+        let teamMate = this.userResolve(name);
 
         if (!teamMate) {
             return resp.send(this.text

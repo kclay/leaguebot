@@ -76,7 +76,7 @@ export  default class Signup extends BaseCommand {
             captainName = resp.envelope.user.name;
         }
 
-        let user = this.brain.userForName(captainName);
+        let user = this.userResolve(captainName);
 
         if (!user) {
             return resp.send(this.text

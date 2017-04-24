@@ -3,9 +3,11 @@
 import {Config, sequelize} from "../datastore";
 import {BotConfig} from "../common";
 import Commands from "../commands";
+import Provider from "../providers/discord";
 
 module.exports = (robot) => {
 
+    //if (!process.env.LEAGUE_BOT_ENABLED) return;
 
     const setup = () => {
         Object.keys(Commands.registry).forEach(key => {
@@ -21,6 +23,8 @@ module.exports = (robot) => {
                 config = await Config.create(BotConfig)
 
             }
+
+            robot.brain.set('provider', Provider);
             robot.brain.set('config', config);
             return setup();
         })

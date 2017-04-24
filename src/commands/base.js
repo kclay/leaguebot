@@ -3,7 +3,7 @@ const stackTrace = require('stack-trace');
 import {Listener, Middleware} from "hubot";
 import {inspect} from "util";
 import {addPermissions, CHANNELS, CHANNELS_ALL, createLogger, PERMISSIONS, PERMISSIONS_ALL} from "../common";
-import {AutoFormatter, TextBuilder} from "../formatters";
+import TextBuilder from "../core/builder";
 const NamedRegExp = require('named-regexp-groups');
 const Promise = require('bluebird');
 
@@ -24,6 +24,7 @@ export default class BaseCommand {
     log;
     _pattern = '';
     _fmt;
+    _provider;
 
 
     constructor(robot, id) {
@@ -32,18 +33,23 @@ export default class BaseCommand {
         this.log = createLogger(robot.logger, this.id);
 
         this.init();
-        if (!this._fmt) {
-            this._fmt = new AutoFormatter()
 
-        }
+        this._fmt = new this.provider.Formatter();
+        this._users = this.provider.Users(robot);
+
+
         this.log.debug('Added %s Command', this.id);
         this._pattern = this._buildRegex();
+    }
+
+    get provider() {
+        return this.brain.get('provider');
     }
 
 
     userResolve(resp) {
         let name = typeof resp === 'string' ? resp : resp.envelope.user.name;
-        return this.brain.userForName(name);
+        return this._users.byName(name)
     }
 
     userResolveId(resp) {
@@ -130,7 +136,14 @@ export default class BaseCommand {
 
 
         let text = message.text;
-        let match = this._pattern.exec(text);
+        let isDM = this.provider.Checks.isDM(this.robot, message.room);
+        let match;
+        if (isDM && this._pattern.dm) {
+            match = this._pattern.dm.exec(text);
+        } else {
+            match = this._pattern.public.exec(text);
+        }
+
 
         if (match) {
             this.log.debug('Matched message %s with %j', text, match.groups);
@@ -141,12 +154,14 @@ export default class BaseCommand {
 
 
     _buildRegex() {
-        let [command, trigger] = this.id.split('.');
-        trigger = trigger === 'root' ? '' : ` ${trigger}`;
+        let values = this.provider.Pattern(this.id, this._pattern);
 
-        let value = `!${command}${trigger}${this._pattern}`;
-        this.log.debug('Creating matcher for %s = %s', this.id, value);
-        return new NamedRegExp(value);
+        this.log.debug('Creating matcher for %s = %j', this.id, values);
+        return {
+            dm: values.dm ? new NamedRegExp(values.dm) : null,
+            public: new NamedRegExp(values.public)
+        }
+
     }
 }
 
