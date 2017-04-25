@@ -1,9 +1,14 @@
 import DefaultFormatter from "../../core/formatter";
 const Discord = require('discord.js');
+const MarkdownTable = require('markdown-table');
 class Formatter extends DefaultFormatter {
 
     get embed() {
         return new EmbedBuilder();
+    }
+
+    get table() {
+        return MarkdownTable
     }
 }
 
@@ -20,5 +25,6 @@ class EmbedBuilder {
     author(v) {
         this._author = v;
     }
+
 
 }

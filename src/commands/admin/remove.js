@@ -18,7 +18,7 @@ export  default class Remove extends BaseCommand {
 
     async _handle(resp) {
         let {name} = resp.match.groups;
-        let u = this.robot.brain.userForName(name);
+        let u = this.userResolve(name);
 
         if (!u) {
             return resp.send(`There is no user named ${name}!`);

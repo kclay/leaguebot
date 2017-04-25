@@ -31,18 +31,29 @@ export  default class Teams extends BaseCommand {
         }
 
         let teams = await bracket.getTeams();
-        let text = teams.map(t => `• ${t.name} - Points = 1`).join('\n');
-        let attachment = {
-            title: `Teams of ${bracket.name} bracket.`,
-            text: text,
-            mrkdwn_in: ['text'],
+        let table = this._fmt.table;
 
-        };
-        let payload = {
-            attachments: [attachment]
-        };
+        let text = '';
 
-        return resp.send(payload);
+        if (table) {
+
+            text = table([
+                ['Name', 'Points'],
+                ...teams.map(t => [t.name, 1])
+            ], {
+                align: ['l', 'c']
+            });
+            console.log(text);
+            text = '```md\n' + text + '\n```';
+        } else {
+            text = teams.map(t => `• ${t.name} - Points = 1`).join('\n');
+        }
+
+
+        return resp.send(this.text.add('Teams of').bold(bracket.name)
+            .add('bracket\n')
+            .add(text)._);
+
     }
 
 }

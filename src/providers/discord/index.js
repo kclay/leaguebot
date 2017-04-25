@@ -45,6 +45,11 @@ const Provider = {
             return channel && channel.type === 'dm';
 
         }
+    },
+    Message:{
+        embed:function(info){
+
+        }
     }
 };
 export {

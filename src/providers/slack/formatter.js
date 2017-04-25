@@ -15,4 +15,8 @@ export default class SlackFormatter extends DefaultFormatter {
         return `~${text}~`;
     }
 
+    get table() {
+        return false;
+    }
+
 }
