@@ -49,7 +49,8 @@ export default class BaseCommand {
 
     userResolve(resp) {
         let name = typeof resp === 'string' ? resp : resp.envelope.user.name;
-        return this._users.byName(name)
+        return this._users.byName(name);
+
     }
 
     userResolveId(resp) {

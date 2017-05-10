@@ -4,7 +4,7 @@ const _ = require('lodash');
 const {DataHelper} = require('./bungie-data-helper');
 const request = require('request');
 const constants = require('./showoff-constants')
-request.debug = true;
+//request.debug = true;
 const SHOW_ARMOR = true;
 
 
@@ -30,8 +30,13 @@ export default class GunsmithBaseCommand extends BaseCommand {
         this.xbox = ['xbox', 'xb1', 'xbox1', 'xboxone', 'xbox360', 'xb360', 'xbone', 'xb'];
         this.playstation = ['psn', 'playstation', 'ps', 'ps3', 'ps4', 'playstation3', 'playstation4'];
         this.log.debug('xbox = %j', this.xbox);
+        this.slots = 'primary|special|secondary|heavy|ghost|head|helmet|chest|arm|arms|';
+        this.slots += 'gloves|gauntlets|leg|legs|boots|class|mark|bond|cape|cloak';
+
+
         let networks = [].concat(this.xbox, this.playstation).join('|');
-        this._pattern = '\\s*(?<network>' + networks + ')?\\s*@?(?<name>[\\[\\]\\d\\w\\s]+)?\\s+(?<bucket>primary|secondary|special|heavy)';
+        this._pattern = '\\s*(?<network>' + networks
+            + ')?\\s*@?(?<name>[\\[\\]\\d\\w\\s]+)?\\s+(?<bucket>' + this.slots + ')';
 
 
         super.init();
@@ -49,6 +54,7 @@ export default class GunsmithBaseCommand extends BaseCommand {
         return ['primary', 'heavy', 'special', 'secondary'].includes(value)
     }
 
+
     async _handle(resp) {
         let {network, name, bucket} = resp.match.groups;
 
@@ -56,6 +62,9 @@ export default class GunsmithBaseCommand extends BaseCommand {
         if (!user && name) {
             user = this.userResolve(name);
             if (user) name = user.name;
+        }
+        if (user && !name) {
+            name = user.name;
         }
 
 
@@ -70,8 +79,23 @@ export default class GunsmithBaseCommand extends BaseCommand {
             player = await
                 this._resolveId(membershipType, name);
         } catch (e) {
+            let nickname = resp.envelope.user.nickname;
 
-            return this._handleError(resp, e)
+            if (nickname) {
+
+                membershipType = this._parseNetwork(nickname);
+                name = this._parseName(nickname);
+                try {
+                    player = await
+                        this._resolveId(membershipType, name);
+                    e = null;
+                } catch (e2) {
+                    e = e2;
+                }
+
+            }
+            if (e)
+                return this._handleError(resp, e)
         }
 
         this.log.debug('player %j', player);
@@ -80,6 +104,7 @@ export default class GunsmithBaseCommand extends BaseCommand {
             characterId = await
                 this._getCharacterId(player.platform, player.id)
         } catch (e) {
+
 
             return this._handleError(resp, e)
 
@@ -154,15 +179,9 @@ export default class GunsmithBaseCommand extends BaseCommand {
                 throw new GunsmithError(`Mutiple platforms found for: ${name}. use "xbox" or "playstation`);
             }
             if (results[0]) {
-                return {
-                    platform: 1,
-                    id: results[0]
-                }
+                return results[0]
             } else if (results[1]) {
-                return {
-                    platform: 1,
-                    id: results[1]
-                }
+                return results[1]
             }
             throw new GunsmithError(`Could not find guardian with name: ${name} on either platform.`)
         })
@@ -191,7 +210,6 @@ export default class GunsmithBaseCommand extends BaseCommand {
                     throw new GunsmithError('Something went wrong, no characters found for this user.')
                 }
 
-                console.log(resp);
                 let [character] = resp.data.characters;
                 return character.characterBase.characterId
             })
@@ -199,14 +217,11 @@ export default class GunsmithBaseCommand extends BaseCommand {
 
     async _getItemIdFromSummary(membershipType, playerId, characterId, bucket) {
         const endpoint = `${membershipType}/Account/${playerId}/Character/${characterId}/Inventory/Summary`;
-        this.log.debug('getItemIdFromSummary(%s,%s,%s,%s)', membershipType, playerId, characterId, bucket);
-        this.log.debug('endpoint = %s params = none', endpoint);
         return this.api(endpoint)
             .then(resp => {
 
                 let {items} = resp.data;
 
-                this.log.debug('Items =%j bucket = %s', items, bucket);
                 let item = _.find(items, object => {
                     return object.bucketHash === bucket;
                 });
@@ -221,10 +236,8 @@ export default class GunsmithBaseCommand extends BaseCommand {
 
     async  _getItemDetails(membershipType, playerId, characterId, itemInstanceId) {
         const endpoint = `${membershipType}/Account/${playerId}/Character/${characterId}/Inventory/${itemInstanceId}`;
-        this.log.debug('getItemDetails(%s,%s,%s,%s)', membershipType, playerId, characterId, itemInstanceId);
-
         const params = 'definitions=true';
-        this.log.debug('endpoint = %s params = %s', endpoint, params);
+
         return this.api(endpoint, params)
             .then(resp => {
                 return this.dataHelper.serializeFromApi(resp)

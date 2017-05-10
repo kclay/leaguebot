@@ -81,8 +81,17 @@ class DiscordBot extends Adapter {
         let user = this.robot.brain.userForId(message.author.id);
         user.room = message.channel.id;
         user.name = message.author.username;
+
         user.discriminator = message.author.discriminator;
         user.id = message.author.id;
+        let guid = message.guild;
+        if (guid && guid.members) {
+            let member = guid.members.get(user.id);
+            user.nickname = member.nickname;
+            this.robot.logger.debug('Nickname %s = %s', user.name, user.nickname)
+
+
+        }
 
         if (this.rooms[message.channel.id] === null) {
             this.rooms[message.channel.id] = message.channel;
@@ -97,7 +106,7 @@ class DiscordBot extends Adapter {
             }
         }
 
-        this.robot.logger.debug(text);
+
         return this.receive(new TextMessage(user, text, message.id));
     }
 
