@@ -18,8 +18,6 @@ function GunsmithError(message, extra) {
 require('util').inherits(GunsmithError, Error);
 export default class GunsmithBaseCommand extends BaseCommand {
 
-    xbox = ['xbox', 'xb1', 'xbox1', 'xboxone', 'xbox360', 'xb360', 'xbone', 'xb'];
-    playstation = ['psn', 'playstation', 'ps', 'ps3', 'ps4', 'playstation3', 'playstation4'];
 
     dataHelper = new DataHelper();
 
@@ -29,28 +27,43 @@ export default class GunsmithBaseCommand extends BaseCommand {
 
 
     init() {
-        this._pattern = '\\s*(?<network>psn|xbox)?\\s*(?<name>\\w+)\\s+(?<bucket>primary|secondary|special|heavy)';
+        this.xbox = ['xbox', 'xb1', 'xbox1', 'xboxone', 'xbox360', 'xb360', 'xbone', 'xb'];
+        this.playstation = ['psn', 'playstation', 'ps', 'ps3', 'ps4', 'playstation3', 'playstation4'];
+        this.log.debug('xbox = %j', this.xbox);
+        let networks = [].concat(this.xbox, this.playstation).join('|');
+        this._pattern = '\\s*(?<network>' + networks + ')?\\s*@?(?<name>[\\[\\]\\d\\w\\s]+)?\\s+(?<bucket>primary|secondary|special|heavy)';
 
 
         super.init();
     }
 
-    _matcher(message) {
-        this.log.debug('Message = %j', message);
-        return super._matcher(message)
-    }
 
     _createPatterns() {
         let patterns = super._createPatterns();
         patterns.public = patterns.public.replace('!league ', '!');
+        patterns.flags = 'i';
         return patterns;
+    }
+
+    _isSlot(value) {
+        return ['primary', 'heavy', 'special', 'secondary'].includes(value)
     }
 
     async _handle(resp) {
         let {network, name, bucket} = resp.match.groups;
 
+        let user = this.userResolve(resp);
+        if (!user && name) {
+            user = this.userResolve(name);
+            if (user) name = user.name;
+        }
 
-        let membershipType = this._resolveNetworkType(network);
+
+        this.log.debug('User = %j Name = %s', user, name);
+
+
+        let membershipType = !network ? this._parseNetwork(name) : this._resolveNetworkType(network);
+        name = this._parseName(name);
 
         let player, characterId, itemId, details;
         try {
@@ -104,7 +117,26 @@ export default class GunsmithBaseCommand extends BaseCommand {
             .add(e.message).e)
     }
 
+    _parseName(name) {
+        return (name.split('[')[0] || '').replace(']', '').trim();
+
+    }
+
+    _parseNetwork(name) {
+        let parts = name.split('[');
+        if (parts.length > 1) {
+            let network = parts[1].replace(']', '').trim();
+            this.log.debug('network = %s', network);
+            network = network.toLowerCase().trim();
+            return this._resolveNetworkType(network);
+        }
+        return null;
+
+
+    }
+
     _resolveNetworkType(network) {
+        network = network.toLowerCase();
         if (this.xbox.includes(network)) return 1;
         if (this.playstation.includes(network)) return 2;
         return null;
@@ -129,7 +161,7 @@ export default class GunsmithBaseCommand extends BaseCommand {
             } else if (results[1]) {
                 return {
                     platform: 1,
-                    id: results[0]
+                    id: results[1]
                 }
             }
             throw new GunsmithError(`Could not find guardian with name: ${name} on either platform.`)

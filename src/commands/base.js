@@ -158,12 +158,21 @@ export default class BaseCommand {
     }
 
     _buildRegex() {
-        let values = this._createPatterns();
+        let pattern = this._createPatterns();
 
-        this.log.debug('Creating matcher for %s = %j', this.id, values);
+        this.log.debug('Creating matcher for %s = %j', this.id, pattern);
+
+        const regex = (value) => {
+            if (!value) return null;
+            if (pattern.flags) {
+                return new NamedRegExp(value, pattern.flags)
+            }
+            return new NamedRegExp(value);
+        };
+
         return {
-            dm: values.dm ? new NamedRegExp(values.dm) : null,
-            public: new NamedRegExp(values.public)
+            dm: regex(pattern.dm),
+            public: regex(pattern.public)
         }
 
     }
