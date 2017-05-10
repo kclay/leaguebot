@@ -135,7 +135,7 @@ export default class BaseCommand {
         }
 
 
-        let text = message.text;
+        let text = message.text || message.message && message.message.text;
         let isDM = this.provider.Checks.isDM(this.robot, message.room);
         let match;
         if (isDM && this._pattern.dm) {
@@ -153,8 +153,12 @@ export default class BaseCommand {
     }
 
 
+    _createPatterns() {
+        return this.provider.Pattern(this.id, this._pattern);
+    }
+
     _buildRegex() {
-        let values = this.provider.Pattern(this.id, this._pattern);
+        let values = this._createPatterns();
 
         this.log.debug('Creating matcher for %s = %j', this.id, values);
         return {

@@ -125,18 +125,22 @@ class DiscordBot extends Adapter {
             split: true
         }
         if (typeof message !== 'string') {
-            message = message.text;
+
             options = _.defaults(message, options);
+            message = message.text;
         }
+
         message = zSWC + message;
 
         let {robot} = this;
+
+        robot.logger.debug('Message options = %j', options);
         let sendChannelMessage = function (channel, message) {
             let clientUser = __guard__(robot != null ? robot.client : undefined, x => x.user);
-            let isText = (channel !== null) && (channel.type === 'text');
+            let isText = (channel != null) && (channel.type === 'text');
             let permissions = isText && channel.permissionsFor(clientUser);
 
-            let hasPerm = isText ? ((permissions !== null) && permissions.hasPermission("SEND_MESSAGES")) : channel.type !== 'text';
+            let hasPerm = isText ? ((permissions != null) && permissions.hasPermission("SEND_MESSAGES")) : channel.type !== 'text';
             if (hasPerm) {
                 return channel.sendMessage(message, options)
                     .then(msg => robot.logger.debug(`SUCCESS! Message sent to: ${channel.id}`)).catch(function (err) {
@@ -166,11 +170,12 @@ class DiscordBot extends Adapter {
 
         //@robot.logger.debug "#{@robot.name}: Try to send message: \"#{message}\" to channel: #{channelId}"
 
-        if (this.rooms[channelId] !== null) { // room is already known and cached
+        robot.logger.debug(`Looking up channel ${channelId} = %j`, this.rooms[channelId])
+        if (this.rooms[channelId]) { // room is already known and cached
             return sendChannelMessage(this.rooms[channelId], message);
         } else { // unknown room, try to find it
             let channels = this.client.channels.filter(channel => channel.id === channelId);
-            if (channels.first() !== null) {
+            if (channels.first()) {
                 return sendChannelMessage(channels.first(), message);
             } else if (this.client.users.get(channelId) !== null) {
                 return sendUserMessage(this.client.users.get(channelId), message);
