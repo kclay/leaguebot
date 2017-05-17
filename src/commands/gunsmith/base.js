@@ -46,8 +46,10 @@ export default class GunsmithBaseCommand extends BaseCommand {
         }
     ];
 
+    static id = 'gunsmith.root';
+
     constructor(robot) {
-        super(robot, 'gunsmith.root')
+        super(robot, GunsmithBaseCommand.id)
     }
 
 

@@ -114,7 +114,17 @@ glob.sync(`${__dirname}/**/*.js`).forEach(file => {
     if (!match)return;
     let name = match[1];
     let command = require(path.resolve(file));
+    let disabledCommands = (process.env.LEAGUE_DISABLED_COMMANDS || '').split(',');
+    let enabledCommands = (process.env.LEAGUE_ENABLED_COMMANDS || '').split(',');
+
+    let disableAll = disabledCommands.includes('ALL');
+
     if (command.prototype instanceof BaseCommand) {
+
+        let id = command.id || 'unknown';
+        if (disableAll && !enabledCommands.includes(id)) return;
+        if (disabledCommands.includes(id)) return;
+
         Repo.add(name, triggerName, command);
     }
 });
