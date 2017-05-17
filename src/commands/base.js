@@ -31,13 +31,9 @@ export default class BaseCommand {
         this._id = id;
         this.robot = robot;
         this.log = createLogger(robot.logger, this.id);
-
         this.init();
-
         this._fmt = new this.provider.Formatter();
         this._users = this.provider.Users(robot);
-
-
         this.log.debug('Added %s Command', this.id);
         this._pattern = this._buildRegex();
     }

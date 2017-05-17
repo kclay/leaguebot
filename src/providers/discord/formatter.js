@@ -10,6 +10,9 @@ class Formatter extends DefaultFormatter {
     get table() {
         return MarkdownTable
     }
+    bold(text) {
+        return `*${text}*`;
+    }
 }
 
 export {

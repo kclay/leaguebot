@@ -47,7 +47,7 @@ export default {
         "1943323491": "Recovery"
     },
 
-    EXTENDED_WEAPON_STATS: [ "1345609583", "943549884" ],
+    EXTENDED_WEAPON_STATS: ["1345609583", "943549884"],
 
     // used in formatting the attachment
     DAMAGE_COLOR: {
@@ -55,5 +55,23 @@ export default {
         'Arc': '80b3ff',
         'Solar': 'e68a00',
         'Void': '400080'
+    },
+    VENDORS: {
+        TITAN: {
+            VANGUARD: '1990950'
+        },
+        HUNTER: {
+            VANGUARD: '3003633346'
+        },
+        WARLOCK: {
+            VANGUARD: '1575820975',
+            DEAD_ORBIT: '1990950',
+            FWC: '1821699360',
+            NEW_MONARCHY: '180824498',
+            CRUCIBLE: '3746647075'
+        },
+        CRUCIBLE: '3658200622 '
+
+
     }
 };

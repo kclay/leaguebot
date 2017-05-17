@@ -20,6 +20,31 @@ export default class GunsmithBaseCommand extends BaseCommand {
 
 
     dataHelper = new DataHelper();
+    vendorItemTypes = [
+        {
+            'Auto Rifle': [
+                'auto',
+                'rifle'
+            ],
+            'Scout Rifle': [
+                'scout'
+            ],
+            'Shotgun': [
+                'shotgun'
+            ],
+            'Sniper Rifle': [
+                'sniper'
+            ],
+            'Fusion Rifle': [
+                'fusion'
+            ],
+            'Rocket Launcher': [
+                'rocket',
+                'launcher'
+            ],
+
+        }
+    ];
 
     constructor(robot) {
         super(robot, 'gunsmith.root')
@@ -30,13 +55,19 @@ export default class GunsmithBaseCommand extends BaseCommand {
         this.xbox = ['xbox', 'xb1', 'xbox1', 'xboxone', 'xbox360', 'xb360', 'xbone', 'xb'];
         this.playstation = ['psn', 'playstation', 'ps', 'ps3', 'ps4', 'playstation3', 'playstation4'];
         this.log.debug('xbox = %j', this.xbox);
-        this.slots = 'primary|special|secondary|heavy|ghost|head|helmet|chest|arm|arms|';
+        this.slots = 'primary|special|secondary|heavy|ghost|head|helm|helmet|chest|arm|arms|';
         this.slots += 'gloves|gauntlets|leg|legs|boots|class|mark|bond|cape|cloak';
 
 
         let networks = [].concat(this.xbox, this.playstation).join('|');
-        this._pattern = '\\s*(?<network>' + networks
+        let lookupPattern = '\\s*(?<network>' + networks
             + ')?\\s*@?(?<name>[\\[\\]\\d\\w\\s]+)?\\s+(?<bucket>' + this.slots + ')';
+
+        let vendorPattern = '\\s*(?<weekly>weekly)?\\s*(?<vendor_type>warlock|titan|hunter)?\\s*';
+        this.slots += 'scout|hc|handcannon|shotgun|sniper|fusion|lmg|machine|rocket';
+        vendorPattern += '(?<vendor_name>\\w+)\\s*(?<bucket>' + this.slots + ')?';
+
+        this._pattern = lookupPattern;
 
 
         super.init();
@@ -55,9 +86,8 @@ export default class GunsmithBaseCommand extends BaseCommand {
     }
 
 
-    async _handle(resp) {
+    async _handleCharacterLookup(resp) {
         let {network, name, bucket} = resp.match.groups;
-
         let user = this.userResolve(resp);
         if (!user && name) {
             user = this.userResolve(name);
@@ -104,10 +134,7 @@ export default class GunsmithBaseCommand extends BaseCommand {
             characterId = await
                 this._getCharacterId(player.platform, player.id)
         } catch (e) {
-
-
             return this._handleError(resp, e)
-
         }
 
 
@@ -116,7 +143,6 @@ export default class GunsmithBaseCommand extends BaseCommand {
                 player.platform, player.id,
                 characterId, this._getBucket(bucket))
         } catch (e) {
-
             return this._handleError(resp, e)
         }
 
@@ -124,13 +150,147 @@ export default class GunsmithBaseCommand extends BaseCommand {
             details = await this._getItemDetails(
                 player.platform, player.id, characterId, itemId);
         } catch (e) {
-
             return this._handleError(resp, e)
         }
 
         let message = this.dataHelper.parsePayload(details);
-        this.log.debug('message = %j', message);
+
         return resp.send(message)
+    }
+
+    _resolveVendorName(value) {
+        value = (value || '').toLowerCase();
+        switch (value) {
+            case 'vanguard':
+                return 'VANGUARD';
+            case 'do':
+            case 'orbit':
+            case 'dead orbit':
+                return 'DEAD_ORBIT';
+            case 'future':
+            case 'war':
+            case 'cult':
+            case 'fwc':
+                return 'FWC';
+            case 'nm':
+            case 'new':
+            case 'monarchy':
+            case 'monarch':
+                return 'NEW_MONARCHY';
+            case 'pvp':
+            case 'crucible':
+                return 'CRUCIBLE';
+            default:
+                return null;
+        }
+    }
+
+    _resolveVendorType(value) {
+        value = (value || '').toLowerCase();
+        switch (value) {
+            case 'titan':
+                return 'TITAN';
+            case 'hunter':
+                return 'HUNTER';
+            case 'warlock':
+                return 'WARLOCK';
+            default:
+                return null;
+
+        }
+    }
+
+    _isItemTypeLookup(value) {
+        switch (value) {
+            case 'hc':
+            case 'handcannon':
+            case 'cannon':
+                return 'Hand Cannon';
+            case 'scout':
+                return 'Scout Rifle';
+            case 'auto':
+                return 'Auto Rifle';
+            case 'pulse':
+                return 'Pulse Rifle';
+            case 'shotgun':
+                return 'Shotgun';
+            case'lmg':
+            case 'machine':
+                return 'Machine Gun';
+            case 'sidearm':
+            case 'pewpew':
+                return 'Sidearm';
+            case 'sniper':
+                return 'Sniper Rifle';
+            case 'fusion':
+            case 'voop':
+                return 'Fusion Rifle';
+            case 'rocket':
+            case 'launcher':
+                return 'Rocket Launcher';
+        }
+    }
+
+    async _handleVendorLookup(resp) {
+        let {vendor_type, vendor_name, bucket} = resp.match.groups;
+
+        let vendorId;
+        vendor_name = this._resolveVendorName(vendor_name);
+        vendor_type = this._resolveVendorType(vendor_type);
+        if (vendor_type) {
+            let type = constants.VENDORS[vendor_type];
+            if (type && type[vendor_name]) {
+                vendorId = type[vendor_name];
+            }
+        }
+        if (!vendorId && constants.VENDORS[vendor_name]) {
+            vendorId = constants.VENDORS[vendor_name];
+        }
+
+        if (!vendorId) {
+            return resp.send(this.text.error.add('Invalid vendor')._)
+        }
+
+        let vendorInfo;
+        try {
+            vendorInfo = this._getVendorItemDetails(vendorId);
+        } catch (e) {
+
+        }
+        let definitions = vendorInfo.definitions;
+
+        let bucketId = this._getBucket(bucket);
+        let itemTypeName;
+        if (!bucketId) {
+
+            itemTypeName = this._isItemTypeLookup(value);
+            if (!itemTypeName) {
+                return resp.send(this.text.error.add('Invalid bucket should be one of the following')
+                    .bold(this.slots.split('|').join(',')))
+            }
+        }
+
+        let sales = definitions.items;
+        console.log(sales);
+
+
+        let itemInfos = _.filter(_.values(sales), info => {
+            if (bucketId)return info.bucketHash === bucketId;
+            return info.itemTypeName === itemTypeName;
+
+        })
+        let messages = _.map(itemInfos, info => {
+            return this.dataHelper.serializeFromVendor(info, definitions)
+        })
+    }
+
+    async _handle(resp) {
+        let {weekly, type, vendor_name} = resp.match.groups;
+
+        if (weekly || type || vendor_name) {
+            return this._handleVendorLookup(resp);
+        }
+        return this._handleCharacterLookup(resp);
 
 
     }
@@ -168,6 +328,7 @@ export default class GunsmithBaseCommand extends BaseCommand {
     }
 
     async _resolveId(membershipType, name) {
+        this.log.debug(membershipType, name);
         if (membershipType) {
             return this._getPlayerId(membershipType, name)
         }
@@ -241,6 +402,17 @@ export default class GunsmithBaseCommand extends BaseCommand {
         return this.api(endpoint, params)
             .then(resp => {
                 return this.dataHelper.serializeFromApi(resp)
+            })
+    }
+
+    async  _getVendorItemDetails(vendorId) {
+
+        const endpoint = `/Platform/Destiny/Vendors/${vendorId}`;
+        const params = 'definitions=true';
+
+        return this.api(endpoint, params)
+            .then(resp => {
+                return resp;
             })
     }
 
